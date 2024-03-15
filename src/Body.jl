@@ -4,11 +4,11 @@ using StaticArrays
 
 Immersed body Abstract Type. Any `AbstractBody` subtype must implement
 
-    d = sdf(body::AbstractBody, s, x, t=0)
+    d = sdf(body::AbstractBody, s, I, x, t=0)
 
 and
 
-    d,n,V = measure(body::AbstractBody, s, x, t=0)
+    d,n,V = measure(body::AbstractBody, s, I, x, t=0)
 
 where `d` is the signed distance from `x` to the body at time `t`,
 and `n` & `V` are the normal and velocity vectors implied at `x`.
@@ -32,10 +32,10 @@ function measure!(a::Flow{N,T}, body::AbstractBody; t = T(0), ϵ = 1) where {N,T
     a.μ₀ .= 1
     a.μ₁ .= 0
     @fastmath @inline function fill!(μ₀, μ₁, V, d, I)
-        d[I] = sdf(body, a, loc(0, I, T), t)
+        d[I] = sdf(body, a, I, loc(0, I, T), t)
         if abs(d[I]) < 2 + ϵ
             for i ∈ 1:N
-                dᵢ, nᵢ, Vᵢ = measure(body, a, WaterLily.loc(i, I, T), t)
+                dᵢ, nᵢ, Vᵢ = measure(body, a, I, WaterLily.loc(i, I, T), t)
                 V[I, i] = Vᵢ[i]
                 μ₀[I, i] = WaterLily.μ₀(dᵢ, ϵ)
                 μ₁[I, i, :] .= WaterLily.μ₁(dᵢ, ϵ) * nᵢ
@@ -58,12 +58,12 @@ end
 μ₁(d, ϵ) = ϵ * kern₁(clamp(d / ϵ, -1, 1))
 
 """
-    measure_sdf!(a::AbstractArray, body::AbstractBody, s, t=0)
+    measure_sdf!(a::AbstractArray, body::AbstractBody, s, I, t=0)
 
-Uses `sdf(body,s,x,t)` to fill `a`.
+Uses `sdf(body,s,I,x,t)` to fill `a`.
 """
-measure_sdf!(a::AbstractArray, body::AbstractBody, s, t = 0) =
-    @inside a[I] = sdf(body, s, loc(0, I), t)
+measure_sdf!(a::AbstractArray, body::AbstractBody, s, I, t = 0) =
+    @inside a[I] = sdf(body, s, I, loc(0, I), t)
 
 """
     NoBody

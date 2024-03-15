@@ -94,7 +94,7 @@ function ∮nds(
     @loop df[I, :] .= p[I] * nds(body, loc(0, I, T), t) over I ∈ inside(p)
     [sum(@inbounds(df[inside(p), i])) for i ∈ 1:N] |> Array
 end
-@inline function nds(body::AbstractBody, s, x, t)
-    d, n, _ = measure(body, s, x, t)
+@inline function nds(body::AbstractBody, s, I, x, t)
+    d, n, _ = measure(body, s, I, x, t)
     n * WaterLily.kern(clamp(d, -1, 1))
 end
